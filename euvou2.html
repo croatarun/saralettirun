@@ -12,11 +12,12 @@
         .controls { background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
         label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; margin-top: 10px; }
         input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px; }
+        input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px; font-size: 14px;}
         .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-upload { background: #000; color: #fff; }
         .btn-download { background: #2d5a27; color: #fff; }
         input[type="file"] { display: none; }
+        hr { border: 0; border-top: 1px solid #ddd; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -31,18 +32,18 @@
 
     <div class="controls">
         <label>NOME DO ATLETA</label>
-        <input type="text" id="nomeAtleta" placeholder="Digite seu nome" maxlength="30">
+        <input type="text" id="nomeAtleta" placeholder="Digite seu nome (ex: João Silva)" maxlength="35">
         
         <label>EQUIPE</label>
-        <input type="text" id="equipeAtleta" placeholder="Nome da equipe" maxlength="30">
+        <input type="text" id="equipeAtleta" placeholder="Nome da equipe" maxlength="35">
 
-        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+        <hr>
 
-        <label>ZOOM</label>
+        <label>ZOOM DA FOTO</label>
         <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <label>HORIZONTAL (X)</label>
+        <label>AJUSTE HORIZONTAL (X)</label>
         <input type="range" id="posX" min="-800" max="800" value="0">
-        <label>VERTICAL (Y)</label>
+        <label>AJUSTE VERTICAL (Y)</label>
         <input type="range" id="posY" min="-800" max="800" value="0">
     </div>
 
@@ -58,16 +59,25 @@
     let molduraOK = false;
     let atletaOK = false;
 
+    // Dimensões da imagem original
     const W = 1080;
     const H = 1920;
+    
+    // Área branca exata (janela da foto)
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
 
+    // Tenta carregar a imagem localmente (pode falhar se rodar direto no navegador sem servidor)
     imgMoldura.src = 'euvou.png'; 
+    imgMoldura.onerror = function() {
+        console.error("Erro ao carregar a imagem 'euvou.png'. Certifique-se de que o arquivo está na mesma pasta e que você está usando um servidor local.");
+        alert("Erro crítico: Não foi possível carregar a moldura 'euvou.png'.");
+    }
+    
     imgMoldura.onload = () => {
         molduraOK = true;
         canvas.width = W;
         canvas.height = H;
-        render();
+        render(); // Desenha a moldura inicial vazia
     };
 
     document.getElementById('atletaInput').onchange = e => {
@@ -75,7 +85,10 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = ev => {
-                imgAtleta.onload = () => { atletaOK = true; render(); };
+                imgAtleta.onload = () => { 
+                    atletaOK = true; 
+                    render(); 
+                };
                 imgAtleta.src = ev.target.result;
             };
             reader.readAsDataURL(file);
@@ -90,50 +103,61 @@
     function render() {
         if (!molduraOK) return;
 
+        // Limpa tudo
         ctx.clearRect(0, 0, W, H);
 
-        // 1. Foto do Atleta (com máscara)
+        // --- PASSO 1: Desenhar a MOLDURA primeiro (como base de fundo) ---
+        ctx.drawImage(imgMoldura, 0, 0, W, H);
+
+        // --- PASSO 2: Desenhar a FOTO com recorte na área branca ---
         if (atletaOK) {
-            ctx.save();
+            ctx.save(); // Salva o estado atual (sem recorte)
+
+            // Cria o caminho do retângulo arredondado da área branca
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
-            ctx.clip();
+            ctx.clip(); // Tudo que for desenhado agora só aparece dentro desse caminho
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
             const py = parseInt(document.getElementById('posY').value);
 
-            const fw = imgAtleta.width * zoom;
-            const fh = imgAtleta.height * zoom;
+            // Calcula o tamanho da imagem com zoom mantendo a proporção
+            let fw = imgAtleta.width * zoom;
+            let fh = imgAtleta.height * zoom;
+
+            // Calcula o centro da área branca para alinhar a foto
             const cx = area.x + (area.w / 2) + px;
             const cy = area.y + (area.h / 2) + py;
 
+            // Desenha a foto centralizada e escalada dentro do recorte
             ctx.drawImage(imgAtleta, cx - fw/2, cy - fh/2, fw, fh);
-            ctx.restore();
+
+            ctx.restore(); // Restaura o estado original (remove o recorte)
         }
 
-        // 2. Moldura (Atrás ou Frente dependendo do seu PNG ser transparente ou não)
-        // Se sua moldura tem o meio transparente, use 'destination-over'
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.drawImage(imgMoldura, 0, 0, W, H);
-        ctx.globalCompositeOperation = 'source-over';
-
-        // 3. Desenhar Textos (Nome e Equipe)
-        const nome = document.getElementById('nomeAtleta').value.toUpperCase();
-        const equipe = document.getElementById('equipeAtleta').value.toUpperCase();
+        // --- PASSO 3: Desenhar Textos sobre a moldura ---
+        const nome = document.getElementById('nomeAtleta').value.toUpperCase().trim();
+        const equipe = document.getElementById('equipeAtleta').value.toUpperCase().trim();
 
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle'; // Alinhamento vertical pelo meio
         
-        // Estilo do Nome
-        ctx.fillStyle = '#2d5a27'; // Cor verde (ajuste conforme necessário)
-        ctx.font = 'bold 60px sans-serif';
-        ctx.fillText(nome, W / 2, 1380); // Posição Y logo abaixo da foto
+        // Estilo do Nome (Verde)
+        if (nome) {
+            ctx.fillStyle = '#2d5a27'; 
+            ctx.font = 'bold 64px sans-serif'; // Levemente maior
+            ctx.fillText(nome, W / 2, 1380);
+        }
 
-        // Estilo da Equipe
-        ctx.fillStyle = '#666'; // Cor cinza
-        ctx.font = '40px sans-serif';
-        ctx.fillText(equipe, W / 2, 1450); // Posição Y abaixo do nome
+        // Estilo da Equipe (Cinza)
+        if (equipe) {
+            ctx.fillStyle = '#666'; 
+            ctx.font = '44px sans-serif'; // Levemente maior
+            ctx.fillText(equipe, W / 2, 1450);
+        }
     }
 
+    // Função auxiliar para desenhar o retângulo arredondado (máscara)
     function drawRoundedRect(ctx, x, y, width, height, radius) {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
