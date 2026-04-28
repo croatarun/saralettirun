@@ -4,32 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Saraletii Run 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #edeff2; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; background: #edeff2; padding: 20px; }
         .container { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 420px; width: 100%; }
-        h2 { font-size: 18px; text-align: center; margin-bottom: 20px; color: #2d5a27; text-transform: uppercase; letter-spacing: 1px; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #ddd; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .preview { width: 100%; aspect-ratio: 9/16; background: #ddd; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #fff; }
         canvas { width: 100%; height: 100%; display: block; }
         .controls { background: #f8f9fa; padding: 18px; border-radius: 15px; border: 1px solid #eee; }
         label { font-size: 11px; font-weight: 700; color: #555; display: block; margin-bottom: 6px; margin-top: 12px; text-transform: uppercase; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 8px; font-size: 14px; outline: none; transition: 0.2s; }
-        input[type="text"]:focus { border-color: #2d5a27; box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.1); }
-        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; cursor: pointer; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; text-transform: uppercase; transition: 0.3s; }
-        .btn-upload { background: #111; color: #fff; letter-spacing: 1px; }
-        .btn-upload:hover { background: #333; transform: translateY(-2px); }
-        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; letter-spacing: 1px; }
-        .btn-download:hover { background: #21441d; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(45, 90, 39, 0.3); }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 8px; font-size: 14px; }
+        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; transition: 0.3s; }
+        .btn-upload { background: #111; color: #fff; }
+        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; }
         input[type="file"] { display: none; }
-        .hint { font-size: 10px; color: #888; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Saraletii Run 2026</h2>
-    
-    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Selecionar sua Foto</button>
+    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Selecionar Foto</button>
     <input type="file" id="atletaInput" accept="image/*">
 
     <div class="preview">
@@ -38,26 +32,17 @@
 
     <div class="controls">
         <label>Nome do Atleta</label>
-        <input type="text" id="nomeInput" placeholder="Ex: MARCOS RENAN" maxlength="30">
+        <input type="text" id="nomeInput" placeholder="NOME DO ATLETA">
         <label>Equipe</label>
-        <input type="text" id="equipeInput" placeholder="Ex: CROATARUN" maxlength="30">
+        <input type="text" id="equipeInput" placeholder="EQUIPE">
         
-        <label>Zoom e Ajuste da Foto</label>
+        <label>Ajustes da Foto</label>
         <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label>Horizontal</label>
-                <input type="range" id="posX" min="-800" max="800" value="0">
-            </div>
-            <div style="flex: 1;">
-                <label>Vertical</label>
-                <input type="range" id="posY" min="-800" max="800" value="0">
-            </div>
-        </div>
+        <input type="range" id="posX" min="-800" max="800" value="0">
+        <input type="range" id="posY" min="-800" max="800" value="0">
     </div>
 
-    <button class="btn btn-download" id="downloadBtn">2. Baixar para o Instagram</button>
-    <p class="hint">Ajuste o nome e a foto antes de baixar.</p>
+    <button class="btn btn-download" id="downloadBtn">2. Baixar Imagem</button>
 </div>
 
 <script>
@@ -97,86 +82,69 @@
 
     function render() {
         if (!molduraOK) return;
-
         ctx.clearRect(0, 0, W, H);
 
-        // 1. FUNDO: Desenha a Moldura Primeiro
+        // 1. Moldura de fundo
         ctx.drawImage(imgMoldura, 0, 0, W, H);
 
-        // 2. FOTO DO ATLETA (Com Recorte)
+        // 2. Foto com recorte
         if (atletaOK) {
             ctx.save();
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
             ctx.clip(); 
-
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
             const py = parseInt(document.getElementById('posY').value);
-
             const fw = imgAtleta.width * zoom;
             const fh = imgAtleta.height * zoom;
-            const cx = area.x + (area.w / 2) + px;
-            const cy = area.y + (area.h / 2) + py;
-
-            ctx.drawImage(imgAtleta, cx - fw/2, cy - fh/2, fw, fh);
+            ctx.drawImage(imgAtleta, (area.x + area.w/2) + px - fw/2, (area.y + area.h/2) + py - fh/2, fw, fh);
             ctx.restore();
         }
 
-        // 3. ARTE DO "EU VOU" (Estilizada por cima da foto)
-        renderEuVou();
+        // 3. Arte "EU VOU" idêntica à imagem (Estilo Pincel)
+        renderEuVouIdentico();
 
-        // 4. TEXTOS: NOME E EQUIPE
-        renderTextos();
+        // 4. Nome e Equipe (Posicionados mais para cima)
+        renderTextosAjustados();
     }
 
-    function renderEuVou() {
-        const txt = "EU VOU";
-        const x = W / 2;
-        const y = 1170; // Posição sobre a base da foto
-
+    function renderEuVouIdentico() {
         ctx.save();
         ctx.textAlign = "center";
-        ctx.font = "italic bold 150px sans-serif";
+        // Permanent Marker é a fonte que mais se aproxima do estilo pincel da imagem
+        ctx.font = "140px 'Permanent Marker'"; 
+        
+        const x = W / 2;
+        const y = 1180; 
 
-        // Sombra para destacar da foto
-        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetX = 8;
-        ctx.shadowOffsetY = 8;
+        // Efeito levemente inclinado para a esquerda como na foto
+        ctx.translate(x, y);
+        ctx.rotate(-0.03); 
 
-        // Contorno Branco Grosso (Stroke)
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 22;
-        ctx.lineJoin = "round";
-        ctx.strokeText(txt, x, y);
-
-        // Preenchimento Verde Principal
-        ctx.shadowColor = "transparent"; // Remove sombra para o preenchimento
-        ctx.fillStyle = "#2d5a27"; 
-        ctx.fillText(txt, x, y);
+        // Cor verde exata do pincel
+        ctx.fillStyle = "#33a34d"; 
+        ctx.fillText("EU VOU", 0, 0);
         
         ctx.restore();
     }
 
-    function renderTextos() {
+    function renderTextosAjustados() {
         const nome = document.getElementById('nomeInput').value.toUpperCase().trim();
         const equipe = document.getElementById('equipeInput').value.toUpperCase().trim();
-
         ctx.textAlign = "center";
 
-        // Estilização do Nome
         if(nome) {
-            ctx.fillStyle = "#111"; // Cor escura para contraste no fundo laranja/amarelo
+            ctx.fillStyle = "#1a3a16";
             ctx.font = "bold 65px sans-serif";
-            // Adiciona um pequeno espaçamento entre letras (simulado)
-            ctx.fillText(nome, W / 2, 1435); 
+            // Subi a posição: de 1435 para 1350
+            ctx.fillText(nome, W / 2, 1350); 
         }
 
-        // Estilização da Equipe
         if(equipe) {
-            ctx.fillStyle = "#444"; // Um pouco mais suave
-            ctx.font = "italic 42px sans-serif";
-            ctx.fillText(equipe, W / 2, 1505);
+            ctx.fillStyle = "#555";
+            ctx.font = "42px sans-serif";
+            // Subi a posição: de 1505 para 1410
+            ctx.fillText(equipe, W / 2, 1410);
         }
     }
 
@@ -195,9 +163,9 @@
     }
 
     document.getElementById('downloadBtn').onclick = () => {
-        if(!atletaOK) return alert("Por favor, selecione sua foto primeiro!");
+        if(!atletaOK) return alert("Selecione sua foto primeiro!");
         const link = document.createElement('a');
-        link.download = 'saraletii_run_2026.png';
+        link.download = 'saraletii_run.png';
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
