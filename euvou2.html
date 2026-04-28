@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Saraletii Run 2026</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid #ccc; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .controls { background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; margin-top: 10px; }
+        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
+        input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-upload { background: #000; color: #fff; }
+        .btn-download { background: #2d5a27; color: #fff; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. SELECIONAR FOTO</button>
+    <input type="file" id="atletaInput" accept="image/*">
+
+    <div class="preview">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <label>NOME DO ATLETA</label>
+        <input type="text" id="nomeAtleta" placeholder="Digite seu nome" maxlength="30">
+        
+        <label>EQUIPE</label>
+        <input type="text" id="equipeAtleta" placeholder="Nome da equipe" maxlength="30">
+
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+
+        <label>ZOOM</label>
+        <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
+        <label>HORIZONTAL (X)</label>
+        <input type="range" id="posX" min="-800" max="800" value="0">
+        <label>VERTICAL (Y)</label>
+        <input type="range" id="posY" min="-800" max="800" value="0">
+    </div>
+
+    <button class="btn btn-download" id="downloadBtn">2. BAIXAR IMAGEM</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const imgMoldura = new Image();
+    const imgAtleta = new Image();
+    
+    let molduraOK = false;
+    let atletaOK = false;
+
+    const W = 1080;
+    const H = 1920;
+    const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
+
+    imgMoldura.src = 'euvou.png'; 
+    imgMoldura.onload = () => {
+        molduraOK = true;
+        canvas.width = W;
+        canvas.height = H;
+        render();
+    };
+
+    document.getElementById('atletaInput').onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                imgAtleta.onload = () => { atletaOK = true; render(); };
+                imgAtleta.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Atualiza o desenho ao digitar ou mover os sliders
+    document.querySelectorAll('input').forEach(input => {
+        input.oninput = render;
+    });
+
+    function render() {
+        if (!molduraOK) return;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // 1. Foto do Atleta (com máscara)
+        if (atletaOK) {
+            ctx.save();
+            drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
+            ctx.clip();
+
+            const zoom = parseFloat(document.getElementById('zoom').value);
+            const px = parseInt(document.getElementById('posX').value);
+            const py = parseInt(document.getElementById('posY').value);
+
+            const fw = imgAtleta.width * zoom;
+            const fh = imgAtleta.height * zoom;
+            const cx = area.x + (area.w / 2) + px;
+            const cy = area.y + (area.h / 2) + py;
+
+            ctx.drawImage(imgAtleta, cx - fw/2, cy - fh/2, fw, fh);
+            ctx.restore();
+        }
+
+        // 2. Moldura (Atrás ou Frente dependendo do seu PNG ser transparente ou não)
+        // Se sua moldura tem o meio transparente, use 'destination-over'
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.drawImage(imgMoldura, 0, 0, W, H);
+        ctx.globalCompositeOperation = 'source-over';
+
+        // 3. Desenhar Textos (Nome e Equipe)
+        const nome = document.getElementById('nomeAtleta').value.toUpperCase();
+        const equipe = document.getElementById('equipeAtleta').value.toUpperCase();
+
+        ctx.textAlign = 'center';
+        
+        // Estilo do Nome
+        ctx.fillStyle = '#2d5a27'; // Cor verde (ajuste conforme necessário)
+        ctx.font = 'bold 60px sans-serif';
+        ctx.fillText(nome, W / 2, 1380); // Posição Y logo abaixo da foto
+
+        // Estilo da Equipe
+        ctx.fillStyle = '#666'; // Cor cinza
+        ctx.font = '40px sans-serif';
+        ctx.fillText(equipe, W / 2, 1450); // Posição Y abaixo do nome
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    }
+
+    document.getElementById('downloadBtn').onclick = () => {
+        if(!atletaOK) return alert("Selecione sua foto primeiro!");
+        const link = document.createElement('a');
+        link.download = 'story_saraletii_run.png';
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+    };
+</script>
+
+</body>
+</html>
