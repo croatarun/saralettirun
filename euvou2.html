@@ -3,160 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Saraletii Run 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <title>Gerador Saraletii Run 2026 - Ultra HD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; padding: 20px; }
-        .container { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 1px solid #ddd; }
-        canvas { width: 100%; height: 100%; display: block; image-rendering: -webkit-optimize-contrast; }
-        .controls { background: #fdfdfd; padding: 18px; border-radius: 15px; border: 1px solid #eaeaea; }
-        label { font-size: 10px; font-weight: 800; color: #888; display: block; margin-bottom: 5px; margin-top: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; }
-        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-upload { background: #000; color: #fff; }
-        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; box-shadow: 0 4px 12px rgba(45, 90, 39, 0.3); }
-        input[type="file"] { display: none; }
+        :root { --primary: #2d5a27; --bg: #f8fafc; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .container { background: #ffffff; padding: 25px; border-radius: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); max-width: 400px; width: 100%; }
+        h1 { font-size: 14px; text-align: center; color: var(--primary); letter-spacing: 2px; margin-bottom: 20px; }
+        .preview-box { width: 100%; aspect-ratio: 9/16; background: #e2e8f0; border-radius: 20px; overflow: hidden; border: 1px solid #cbd5e1; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .controls { margin-top: 20px; background: #f1f5f9; padding: 20px; border-radius: 20px; }
+        label { font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; display: block; margin: 10px 0 5px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Montserrat'; font-weight: 700; box-sizing: border-box; }
+        input[type="range"] { width: 100%; height: 6px; accent-color: var(--primary); }
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-upload { background: #0f172a; color: white; margin-bottom: 15px; }
+        .btn-download { background: var(--primary); color: white; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Carregar Foto</button>
-    <input type="file" id="atletaInput" accept="image/*">
+    <h1>SARALETII RUN 2026</h1>
+    <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">1. ESCOLHER FOTO</button>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-    <div class="preview">
-        <canvas id="canvas"></canvas>
+    <div class="preview-box">
+        <canvas id="mainCanvas"></canvas>
     </div>
 
     <div class="controls">
-        <label>Atleta</label>
-        <input type="text" id="nomeInput" placeholder="NOME DO ATLETA" maxlength="25">
+        <label>Nome do Atleta</label>
+        <input type="text" id="nomeAtleta" placeholder="EX: JOÃO">
         <label>Equipe</label>
-        <input type="text" id="equipeInput" placeholder="NOME DA EQUIPE" maxlength="25">
-        
-        <label>Ajuste da Imagem</label>
-        <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <input type="range" id="posX" min="-800" max="800" value="0">
-        <input type="range" id="posY" min="-800" max="800" value="0">
+        <input type="text" id="equipeAtleta" placeholder="EX: RERIURUN">
+        <label>Zoom</label>
+        <input type="range" id="zoom" min="0.1" max="3" step="0.01" value="1.0">
+        <label>Ajuste Vertical (Y)</label>
+        <input type="range" id="posY" min="-600" max="600" value="0">
     </div>
 
-    <button class="btn btn-download" id="downloadBtn">2. Baixar Story</button>
+    <button class="btn btn-download" id="btnDownload">2. BAIXAR STORY ULTRA HD</button>
 </div>
 
 <script>
-    const canvas = document.getElementById('canvas');
+    const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
     const imgMoldura = new Image();
     const imgAtleta = new Image();
-    
-    let molduraOK = false;
-    let atletaOK = false;
 
-    // Resolução 4K para garantir máxima qualidade na postagem
-    const W = 1080;
-    const H = 1920;
+    const W = 1080, H = 1920;
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
+    const qualityScale = 3; 
 
     imgMoldura.src = 'euvou.png'; 
     imgMoldura.onload = () => {
-        molduraOK = true;
-        canvas.width = W;
-        canvas.height = H;
+        canvas.width = W * qualityScale;
+        canvas.height = H * qualityScale;
+        ctx.scale(qualityScale, qualityScale);
         render();
     };
 
-    document.getElementById('atletaInput').onchange = e => {
+    document.getElementById('fileInput').onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = ev => {
-                imgAtleta.onload = () => { atletaOK = true; render(); };
-                imgAtleta.src = ev.target.result;
+            reader.onload = (f) => {
+                imgAtleta.src = f.target.result;
+                imgAtleta.onload = render;
             };
             reader.readAsDataURL(file);
         }
     };
 
-    document.querySelectorAll('input').forEach(i => i.oninput = render);
+    document.querySelectorAll('input').forEach(input => input.oninput = render);
 
     function render() {
-        if (!molduraOK) return;
-        
-        // Ativando suavização de imagem
+        ctx.clearRect(0, 0, W * qualityScale, H * qualityScale);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        
-        ctx.clearRect(0, 0, W, H);
 
-        // 1. Moldura
+        // 1. MOLDURA (FUNDO)
         ctx.drawImage(imgMoldura, 0, 0, W, H);
 
-        // 2. Foto com máscara
-        if (atletaOK) {
+        // 2. FOTO DO ATLETA
+        if (imgAtleta.src) {
             ctx.save();
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
-            ctx.clip(); 
-            const zoom = parseFloat(document.getElementById('zoom').value);
-            const px = parseInt(document.getElementById('posX').value);
+            ctx.clip();
+            const z = parseFloat(document.getElementById('zoom').value);
             const py = parseInt(document.getElementById('posY').value);
-            const fw = imgAtleta.width * zoom;
-            const fh = imgAtleta.height * zoom;
-            ctx.drawImage(imgAtleta, (area.x + area.w/2) + px - fw/2, (area.y + area.h/2) + py - fh/2, fw, fh);
+            const aspect = imgAtleta.width / imgAtleta.height;
+            let drawW = area.w * z;
+            let drawH = (area.w / aspect) * z;
+            ctx.drawImage(imgAtleta, area.x + (area.w - drawW)/2, area.y + (area.h - drawH)/2 + py, drawW, drawH);
             ctx.restore();
         }
 
-        // 3. Arte "EU VOU" - Aumentada e com mais definição
-        renderEuVouPremium();
+        // 3. ARTE "EU VOU" - DESIGN DE IMPACTO (BLACK BOX STYLE)
+        renderEuVouImpacto();
 
-        // 4. Nome e Equipe - Qualidade Tipográfica
-        renderTextosPremium();
+        // 4. TEXTOS NOMES
+        renderTextos();
     }
 
-    function renderEuVouPremium() {
-        ctx.save();
-        ctx.textAlign = "center";
-        // Aumentado de 140 para 165
-        ctx.font = "165px 'Permanent Marker'"; 
-        
+    function renderEuVouImpacto() {
         const x = W / 2;
-        const y = 1190; 
+        const y = 1175;
+        const txt = "EU VOU";
 
+        ctx.save();
+        ctx.textAlign = 'center';
         ctx.translate(x, y);
-        ctx.rotate(-0.04); // Inclinado conforme referência
+        ctx.rotate(-0.04);
 
-        // Sombra suave para dar destaque
-        ctx.shadowColor = "rgba(0,0,0,0.2)";
-        ctx.shadowBlur = 10;
+        // --- CAMADA 1: FUNDO PRETO (TARJA DINÂMICA) ---
+        // Cria um destaque atrás do texto para isolar da foto
+        ctx.fillStyle = "rgba(0,0,0,0.85)"; 
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 20;
+        // Desenha um retângulo inclinado atrás do texto
+        ctx.fillRect(-350, -100, 700, 150);
 
-        ctx.fillStyle = "#2d8a42"; 
-        ctx.fillText("EU VOU", 0, 0);
-        
+        // --- CAMADA 2: CONTORNO VERDE (ESTILO CORRIDA) ---
+        ctx.font = "italic 195px 'Permanent Marker'";
+        ctx.strokeStyle = "#2d5a27";
+        ctx.lineWidth = 12;
+        ctx.strokeText(txt, 0, 10);
+
+        // --- CAMADA 3: TEXTO BRANCO PRINCIPAL ---
+        ctx.shadowBlur = 0; // Remove sombra para o texto ficar nítido
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(txt, 0, 10);
+
         ctx.restore();
     }
 
-    function renderTextosPremium() {
-        const nome = document.getElementById('nomeInput').value.toUpperCase().trim();
-        const equipe = document.getElementById('equipeInput').value.toUpperCase().trim();
-        
-        ctx.textAlign = "center";
-        ctx.textRendering = "optimizeLegibility";
+    function renderTextos() {
+        const nome = document.getElementById('nomeAtleta').value.toUpperCase().trim();
+        const equipe = document.getElementById('equipeAtleta').value.toUpperCase().trim();
 
-        if(nome) {
-            // Nome do Atleta - Forte e legível
+        ctx.textAlign = 'center';
+        // Nome Atleta - Ultra Bold e Nítido
+        if (nome) {
+            ctx.font = "900 85px 'Montserrat'";
             ctx.fillStyle = "#1a3a16";
-            ctx.font = "800 72px 'Montserrat'"; // Fonte Montserrat pesada para qualidade
-            ctx.letterSpacing = "2px"; // Espaçamento moderno
-            ctx.fillText(nome, W / 2, 1340); 
+            ctx.fillText(nome, W / 2, 1365);
         }
-
-        if(equipe) {
-            // Equipe - Estilo clean
-            ctx.fillStyle = "#555";
-            ctx.font = "700 42px 'Montserrat'";
-            ctx.letterSpacing = "4px";
-            ctx.fillText(equipe, W / 2, 1400);
+        // Equipe
+        if (equipe) {
+            ctx.font = "700 44px 'Montserrat'";
+            ctx.fillStyle = "#475569";
+            ctx.fillText(equipe, W / 2, 1425);
         }
     }
 
@@ -174,11 +172,10 @@
         ctx.closePath();
     }
 
-    document.getElementById('downloadBtn').onclick = () => {
-        if(!atletaOK) return alert("Selecione sua foto primeiro!");
+    document.getElementById('btnDownload').onclick = () => {
+        if (!imgAtleta.src) return alert("Selecione sua foto primeiro!");
         const link = document.createElement('a');
-        link.download = 'saraletii-run-2026.png';
-        // Gerando em PNG de alta qualidade
+        link.download = 'Saraletii_Run_PRO.png';
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
