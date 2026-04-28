@@ -5,24 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Saraletii Run 2026</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid #ccc; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #edeff2; padding: 20px; color: #333; }
+        .container { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 420px; width: 100%; }
+        h2 { font-size: 18px; text-align: center; margin-bottom: 20px; color: #2d5a27; text-transform: uppercase; letter-spacing: 1px; }
+        .preview { width: 100%; aspect-ratio: 9/16; background: #ddd; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
         canvas { width: 100%; height: 100%; display: block; }
-        .controls { background: #f9f9f9; padding: 15px; border-radius: 12px; }
-        label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; margin-top: 10px; }
-        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; width: 100%; margin-bottom: 5px; }
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-upload { background: #000; color: #fff; }
-        .btn-download { background: #2d5a27; color: #fff; }
+        .controls { background: #f8f9fa; padding: 18px; border-radius: 15px; border: 1px solid #eee; }
+        label { font-size: 11px; font-weight: 700; color: #555; display: block; margin-bottom: 6px; margin-top: 12px; text-transform: uppercase; }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 8px; font-size: 14px; outline: none; transition: 0.2s; }
+        input[type="text"]:focus { border-color: #2d5a27; box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.1); }
+        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; cursor: pointer; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; text-transform: uppercase; transition: 0.3s; }
+        .btn-upload { background: #111; color: #fff; letter-spacing: 1px; }
+        .btn-upload:hover { background: #333; transform: translateY(-2px); }
+        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; letter-spacing: 1px; }
+        .btn-download:hover { background: #21441d; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(45, 90, 39, 0.3); }
         input[type="file"] { display: none; }
+        .hint { font-size: 10px; color: #888; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. SELECIONAR FOTO</button>
+    <h2>Saraletii Run 2026</h2>
+    
+    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Selecionar sua Foto</button>
     <input type="file" id="atletaInput" accept="image/*">
 
     <div class="preview">
@@ -30,22 +37,27 @@
     </div>
 
     <div class="controls">
-        <label>NOME DO ATLETA</label>
-        <input type="text" id="nomeInput" placeholder="Digite seu nome">
-        <label>EQUIPE</label>
-        <input type="text" id="equipeInput" placeholder="Nome da equipe">
+        <label>Nome do Atleta</label>
+        <input type="text" id="nomeInput" placeholder="Ex: MARCOS RENAN" maxlength="30">
+        <label>Equipe</label>
+        <input type="text" id="equipeInput" placeholder="Ex: CROATARUN" maxlength="30">
         
-        <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
-        
-        <label>ZOOM</label>
+        <label>Zoom e Ajuste da Foto</label>
         <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <label>HORIZONTAL (X)</label>
-        <input type="range" id="posX" min="-800" max="800" value="0">
-        <label>VERTICAL (Y)</label>
-        <input type="range" id="posY" min="-800" max="800" value="0">
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>Horizontal</label>
+                <input type="range" id="posX" min="-800" max="800" value="0">
+            </div>
+            <div style="flex: 1;">
+                <label>Vertical</label>
+                <input type="range" id="posY" min="-800" max="800" value="0">
+            </div>
+        </div>
     </div>
 
-    <button class="btn btn-download" id="downloadBtn">2. BAIXAR IMAGEM</button>
+    <button class="btn btn-download" id="downloadBtn">2. Baixar para o Instagram</button>
+    <p class="hint">Ajuste o nome e a foto antes de baixar.</p>
 </div>
 
 <script>
@@ -59,7 +71,6 @@
 
     const W = 1080;
     const H = 1920;
-    // Área branca exata
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
 
     imgMoldura.src = 'euvou.png'; 
@@ -89,14 +100,14 @@
 
         ctx.clearRect(0, 0, W, H);
 
-        // 1. Desenha a Moldura de fundo
+        // 1. FUNDO: Desenha a Moldura Primeiro
         ctx.drawImage(imgMoldura, 0, 0, W, H);
 
-        // 2. Desenha a Foto (somente se selecionada)
+        // 2. FOTO DO ATLETA (Com Recorte)
         if (atletaOK) {
             ctx.save();
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
-            ctx.clip(); // Corta o que estiver fora da área branca
+            ctx.clip(); 
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
@@ -111,27 +122,61 @@
             ctx.restore();
         }
 
-        // 3. Força o "EU VOU" a aparecer por cima da foto (Caso sua moldura não seja transparente)
-        ctx.fillStyle = "#2d5a27"; // Cor verde do "Eu Vou"
-        ctx.font = "bold 130px sans-serif"; // Tamanho aproximado
+        // 3. ARTE DO "EU VOU" (Estilizada por cima da foto)
+        renderEuVou();
+
+        // 4. TEXTOS: NOME E EQUIPE
+        renderTextos();
+    }
+
+    function renderEuVou() {
+        const txt = "EU VOU";
+        const x = W / 2;
+        const y = 1170; // Posição sobre a base da foto
+
+        ctx.save();
         ctx.textAlign = "center";
-        // Desenhamos o texto exatamente na posição onde ele costuma ficar na moldura
-        ctx.fillText("EU VOU", W / 2, 1150);
+        ctx.font = "italic bold 150px sans-serif";
 
-        // 4. Desenha Nome e Equipe (Camada Superior)
-        const nome = document.getElementById('nomeInput').value.toUpperCase();
-        const equipe = document.getElementById('equipeInput').value.toUpperCase();
+        // Sombra para destacar da foto
+        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 8;
+        ctx.shadowOffsetY = 8;
 
+        // Contorno Branco Grosso (Stroke)
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 22;
+        ctx.lineJoin = "round";
+        ctx.strokeText(txt, x, y);
+
+        // Preenchimento Verde Principal
+        ctx.shadowColor = "transparent"; // Remove sombra para o preenchimento
+        ctx.fillStyle = "#2d5a27"; 
+        ctx.fillText(txt, x, y);
+        
+        ctx.restore();
+    }
+
+    function renderTextos() {
+        const nome = document.getElementById('nomeInput').value.toUpperCase().trim();
+        const equipe = document.getElementById('equipeInput').value.toUpperCase().trim();
+
+        ctx.textAlign = "center";
+
+        // Estilização do Nome
         if(nome) {
-            ctx.fillStyle = "#1a3a16";
-            ctx.font = "bold 60px sans-serif";
-            ctx.fillText(nome, W / 2, 1360);
+            ctx.fillStyle = "#111"; // Cor escura para contraste no fundo laranja/amarelo
+            ctx.font = "bold 65px sans-serif";
+            // Adiciona um pequeno espaçamento entre letras (simulado)
+            ctx.fillText(nome, W / 2, 1435); 
         }
 
+        // Estilização da Equipe
         if(equipe) {
-            ctx.fillStyle = "#666";
-            ctx.font = "40px sans-serif";
-            ctx.fillText(equipe, W / 2, 1430);
+            ctx.fillStyle = "#444"; // Um pouco mais suave
+            ctx.font = "italic 42px sans-serif";
+            ctx.fillText(equipe, W / 2, 1505);
         }
     }
 
@@ -150,9 +195,9 @@
     }
 
     document.getElementById('downloadBtn').onclick = () => {
-        if(!atletaOK) return alert("Selecione sua foto primeiro!");
+        if(!atletaOK) return alert("Por favor, selecione sua foto primeiro!");
         const link = document.createElement('a');
-        link.download = 'story_saraletii_run.png';
+        link.download = 'saraletii_run_2026.png';
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
