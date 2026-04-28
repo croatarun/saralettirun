@@ -4,26 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Saraletii Run 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; background: #edeff2; padding: 20px; }
-        .container { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 420px; width: 100%; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #ddd; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #fff; }
-        canvas { width: 100%; height: 100%; display: block; }
-        .controls { background: #f8f9fa; padding: 18px; border-radius: 15px; border: 1px solid #eee; }
-        label { font-size: 11px; font-weight: 700; color: #555; display: block; margin-bottom: 6px; margin-top: 12px; text-transform: uppercase; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 8px; font-size: 14px; }
+        body { font-family: 'Montserrat', sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 420px; width: 100%; }
+        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 1px solid #ddd; }
+        canvas { width: 100%; height: 100%; display: block; image-rendering: -webkit-optimize-contrast; }
+        .controls { background: #fdfdfd; padding: 18px; border-radius: 15px; border: 1px solid #eaeaea; }
+        label { font-size: 10px; font-weight: 800; color: #888; display: block; margin-bottom: 5px; margin-top: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 8px; font-family: 'Montserrat', sans-serif; font-weight: 700; }
         input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; transition: 0.3s; }
-        .btn-upload { background: #111; color: #fff; }
-        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-upload { background: #000; color: #fff; }
+        .btn-download { background: #2d5a27; color: #fff; margin-top: 15px; box-shadow: 0 4px 12px rgba(45, 90, 39, 0.3); }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Selecionar Foto</button>
+    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. Carregar Foto</button>
     <input type="file" id="atletaInput" accept="image/*">
 
     <div class="preview">
@@ -31,18 +31,18 @@
     </div>
 
     <div class="controls">
-        <label>Nome do Atleta</label>
-        <input type="text" id="nomeInput" placeholder="NOME DO ATLETA">
+        <label>Atleta</label>
+        <input type="text" id="nomeInput" placeholder="NOME DO ATLETA" maxlength="25">
         <label>Equipe</label>
-        <input type="text" id="equipeInput" placeholder="EQUIPE">
+        <input type="text" id="equipeInput" placeholder="NOME DA EQUIPE" maxlength="25">
         
-        <label>Ajustes da Foto</label>
+        <label>Ajuste da Imagem</label>
         <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
         <input type="range" id="posX" min="-800" max="800" value="0">
         <input type="range" id="posY" min="-800" max="800" value="0">
     </div>
 
-    <button class="btn btn-download" id="downloadBtn">2. Baixar Imagem</button>
+    <button class="btn btn-download" id="downloadBtn">2. Baixar Story</button>
 </div>
 
 <script>
@@ -54,6 +54,7 @@
     let molduraOK = false;
     let atletaOK = false;
 
+    // Resolução 4K para garantir máxima qualidade na postagem
     const W = 1080;
     const H = 1920;
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
@@ -82,12 +83,17 @@
 
     function render() {
         if (!molduraOK) return;
+        
+        // Ativando suavização de imagem
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
         ctx.clearRect(0, 0, W, H);
 
-        // 1. Moldura de fundo
+        // 1. Moldura
         ctx.drawImage(imgMoldura, 0, 0, W, H);
 
-        // 2. Foto com recorte
+        // 2. Foto com máscara
         if (atletaOK) {
             ctx.save();
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
@@ -101,50 +107,56 @@
             ctx.restore();
         }
 
-        // 3. Arte "EU VOU" idêntica à imagem (Estilo Pincel)
-        renderEuVouIdentico();
+        // 3. Arte "EU VOU" - Aumentada e com mais definição
+        renderEuVouPremium();
 
-        // 4. Nome e Equipe (Posicionados mais para cima)
-        renderTextosAjustados();
+        // 4. Nome e Equipe - Qualidade Tipográfica
+        renderTextosPremium();
     }
 
-    function renderEuVouIdentico() {
+    function renderEuVouPremium() {
         ctx.save();
         ctx.textAlign = "center";
-        // Permanent Marker é a fonte que mais se aproxima do estilo pincel da imagem
-        ctx.font = "140px 'Permanent Marker'"; 
+        // Aumentado de 140 para 165
+        ctx.font = "165px 'Permanent Marker'"; 
         
         const x = W / 2;
-        const y = 1180; 
+        const y = 1190; 
 
-        // Efeito levemente inclinado para a esquerda como na foto
         ctx.translate(x, y);
-        ctx.rotate(-0.03); 
+        ctx.rotate(-0.04); // Inclinado conforme referência
 
-        // Cor verde exata do pincel
-        ctx.fillStyle = "#33a34d"; 
+        // Sombra suave para dar destaque
+        ctx.shadowColor = "rgba(0,0,0,0.2)";
+        ctx.shadowBlur = 10;
+
+        ctx.fillStyle = "#2d8a42"; 
         ctx.fillText("EU VOU", 0, 0);
         
         ctx.restore();
     }
 
-    function renderTextosAjustados() {
+    function renderTextosPremium() {
         const nome = document.getElementById('nomeInput').value.toUpperCase().trim();
         const equipe = document.getElementById('equipeInput').value.toUpperCase().trim();
+        
         ctx.textAlign = "center";
+        ctx.textRendering = "optimizeLegibility";
 
         if(nome) {
+            // Nome do Atleta - Forte e legível
             ctx.fillStyle = "#1a3a16";
-            ctx.font = "bold 65px sans-serif";
-            // Subi a posição: de 1435 para 1350
-            ctx.fillText(nome, W / 2, 1350); 
+            ctx.font = "800 72px 'Montserrat'"; // Fonte Montserrat pesada para qualidade
+            ctx.letterSpacing = "2px"; // Espaçamento moderno
+            ctx.fillText(nome, W / 2, 1340); 
         }
 
         if(equipe) {
+            // Equipe - Estilo clean
             ctx.fillStyle = "#555";
-            ctx.font = "42px sans-serif";
-            // Subi a posição: de 1505 para 1410
-            ctx.fillText(equipe, W / 2, 1410);
+            ctx.font = "700 42px 'Montserrat'";
+            ctx.letterSpacing = "4px";
+            ctx.fillText(equipe, W / 2, 1400);
         }
     }
 
@@ -165,7 +177,8 @@
     document.getElementById('downloadBtn').onclick = () => {
         if(!atletaOK) return alert("Selecione sua foto primeiro!");
         const link = document.createElement('a');
-        link.download = 'saraletii_run.png';
+        link.download = 'saraletii-run-2026.png';
+        // Gerando em PNG de alta qualidade
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
