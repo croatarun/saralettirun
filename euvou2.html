@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Saraletii Run 2026</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
         .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid #ccc; }
+        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid #ccc; position: relative; }
         canvas { width: 100%; height: 100%; display: block; }
         .controls { background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; margin-top: 10px; }
+        label { font-size: 11px; font-weight: bold; color: #444; display: block; margin-bottom: 5px; margin-top: 10px; text-transform: uppercase; }
         input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px; font-size: 14px;}
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 5px; font-size: 14px; }
+        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-upload { background: #000; color: #fff; }
+        .btn-upload:hover { background: #333; }
         .btn-download { background: #2d5a27; color: #fff; }
+        .btn-download:hover { background: #1e3d1a; }
         input[type="file"] { display: none; }
-        hr { border: 0; border-top: 1px solid #ddd; margin: 15px 0; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -31,19 +33,19 @@
     </div>
 
     <div class="controls">
-        <label>NOME DO ATLETA</label>
-        <input type="text" id="nomeAtleta" placeholder="Digite seu nome (ex: João Silva)" maxlength="35">
+        <label>Nome do Atleta</label>
+        <input type="text" id="nomeAtleta" placeholder="Ex: MARCOS RENAN" maxlength="30">
         
-        <label>EQUIPE</label>
-        <input type="text" id="equipeAtleta" placeholder="Nome da equipe" maxlength="35">
+        <label>Sua Equipe</label>
+        <input type="text" id="equipeAtleta" placeholder="Ex: CROATARUN" maxlength="30">
 
         <hr>
 
-        <label>ZOOM DA FOTO</label>
+        <label>Zoom da Foto</label>
         <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <label>AJUSTE HORIZONTAL (X)</label>
+        <label>Mover Horizontal (X)</label>
         <input type="range" id="posX" min="-800" max="800" value="0">
-        <label>AJUSTE VERTICAL (Y)</label>
+        <label>Mover Vertical (Y)</label>
         <input type="range" id="posY" min="-800" max="800" value="0">
     </div>
 
@@ -59,25 +61,19 @@
     let molduraOK = false;
     let atletaOK = false;
 
-    // Dimensões da imagem original
+    // Resolução padrão Instagram Stories
     const W = 1080;
     const H = 1920;
     
-    // Área branca exata (janela da foto)
+    // Coordenadas da área onde a foto deve aparecer
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
 
-    // Tenta carregar a imagem localmente (pode falhar se rodar direto no navegador sem servidor)
     imgMoldura.src = 'euvou.png'; 
-    imgMoldura.onerror = function() {
-        console.error("Erro ao carregar a imagem 'euvou.png'. Certifique-se de que o arquivo está na mesma pasta e que você está usando um servidor local.");
-        alert("Erro crítico: Não foi possível carregar a moldura 'euvou.png'.");
-    }
-    
     imgMoldura.onload = () => {
         molduraOK = true;
         canvas.width = W;
         canvas.height = H;
-        render(); // Desenha a moldura inicial vazia
+        render();
     };
 
     document.getElementById('atletaInput').onchange = e => {
@@ -95,7 +91,7 @@
         }
     };
 
-    // Atualiza o desenho ao digitar ou mover os sliders
+    // Re-renderiza sempre que houver mudança nos inputs
     document.querySelectorAll('input').forEach(input => {
         input.oninput = render;
     });
@@ -103,61 +99,60 @@
     function render() {
         if (!molduraOK) return;
 
-        // Limpa tudo
+        // 1. Limpa o canvas
         ctx.clearRect(0, 0, W, H);
 
-        // --- PASSO 1: Desenhar a MOLDURA primeiro (como base de fundo) ---
+        // 2. Desenha a Moldura Primeiro (Base)
         ctx.drawImage(imgMoldura, 0, 0, W, H);
 
-        // --- PASSO 2: Desenhar a FOTO com recorte na área branca ---
+        // 3. Desenha a Foto do Atleta
         if (atletaOK) {
-            ctx.save(); // Salva o estado atual (sem recorte)
+            ctx.save();
+            
+            // "destination-over" faz com que o novo desenho (a foto) 
+            // fique ATRÁS do que já existe (a moldura e o texto "EU VOU")
+            ctx.globalCompositeOperation = 'destination-over';
 
-            // Cria o caminho do retângulo arredondado da área branca
+            // Criamos o recorte arredondado para a foto não vazar da moldura
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
-            ctx.clip(); // Tudo que for desenhado agora só aparece dentro desse caminho
+            ctx.clip();
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
             const py = parseInt(document.getElementById('posY').value);
 
-            // Calcula o tamanho da imagem com zoom mantendo a proporção
-            let fw = imgAtleta.width * zoom;
-            let fh = imgAtleta.height * zoom;
-
-            // Calcula o centro da área branca para alinhar a foto
+            const fw = imgAtleta.width * zoom;
+            const fh = imgAtleta.height * zoom;
             const cx = area.x + (area.w / 2) + px;
             const cy = area.y + (area.h / 2) + py;
 
-            // Desenha a foto centralizada e escalada dentro do recorte
             ctx.drawImage(imgAtleta, cx - fw/2, cy - fh/2, fw, fh);
-
-            ctx.restore(); // Restaura o estado original (remove o recorte)
+            
+            ctx.restore();
         }
 
-        // --- PASSO 3: Desenhar Textos sobre a moldura ---
-        const nome = document.getElementById('nomeAtleta').value.toUpperCase().trim();
-        const equipe = document.getElementById('equipeAtleta').value.toUpperCase().trim();
+        // 4. Desenha os Textos Dinâmicos (Sempre por cima de tudo)
+        // Resetamos a operação para garantir que o texto fique no topo
+        ctx.globalCompositeOperation = 'source-over';
+        
+        const nome = document.getElementById('nomeAtleta').value.toUpperCase();
+        const equipe = document.getElementById('equipeAtleta').value.toUpperCase();
 
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle'; // Alinhamento vertical pelo meio
         
-        // Estilo do Nome (Verde)
         if (nome) {
-            ctx.fillStyle = '#2d5a27'; 
-            ctx.font = 'bold 64px sans-serif'; // Levemente maior
-            ctx.fillText(nome, W / 2, 1380);
+            ctx.fillStyle = '#1a3a16'; // Verde escuro para o nome
+            ctx.font = 'bold 55px sans-serif';
+            ctx.fillText(nome, W / 2, 1330); 
         }
 
-        // Estilo da Equipe (Cinza)
         if (equipe) {
-            ctx.fillStyle = '#666'; 
-            ctx.font = '44px sans-serif'; // Levemente maior
-            ctx.fillText(equipe, W / 2, 1450);
+            ctx.fillStyle = '#666'; // Cinza para equipe
+            ctx.font = '35px sans-serif';
+            ctx.fillText(equipe, W / 2, 1385);
         }
     }
 
-    // Função auxiliar para desenhar o retângulo arredondado (máscara)
     function drawRoundedRect(ctx, x, y, width, height, radius) {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
